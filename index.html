@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <title>XMLHttpRequest</title>
+  </head>
+  <body style="background: #F5FFFA;">
+    <section class="user-wrapper">
+			<div class="container">
+				<div style="margin-top: 25px;" class="row">
+					<div class="col s4">
+						<div class="collection users-list">
+							<h5 class="collection-item">Users</h5>
+						</div>
+					</div>
+					<div class="col s6">
+						<div class="user-info">
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+  </body>
+
+  <script>
+		const URL = 'https://jsonplaceholder.typicode.com';
+		const usersListElement = document.querySelector('.users-list');
+		const userInfoElement = document.querySelector('.user-info');
+
+		usersListElement.addEventListener('click', onUserClickHandler);
+
+		function onUserClickHandler(event) {
+			event.preventDefault();
+
+			if(event.target.dataset.userId) {
+				getUserInfoHTTP(event.target.dataset.userId, onGetUserInfoCallback);
+			};
+		};
+
+		function getUsersHttp(cb) {
+			const xhr = new XMLHttpRequest();
+			xhr.open('GET', `${URL}/users`);
+			
+			xhr.addEventListener('load', (e) => {
+				if(xhr.status !== 200) {
+					console.log('Error', xhr.status);
+					return;
+				}
+				const res = JSON.parse(xhr.responseText);
+				cb(res);
+			})
+
+			xhr.send();
+		};
+
+		function getUserInfoHTTP(id, cb) {
+			const xhr = new XMLHttpRequest();
+			xhr.open('GET', `${URL}/users/${id}`);
+			
+			xhr.addEventListener('load', (e) => {
+				if(xhr.status !== 200) {
+					console.log('Error', xhr.status);
+					return;
+				}
+				const res = JSON.parse(xhr.responseText);
+				cb(res);
+			})
+
+			xhr.send();
+		};
+
+		function onGetUserInfoCallback(user) {
+			if(!user.id) {
+				console.log('user not found');
+				return;
+			}
+			renderUserInfo(user);
+		};
+
+		function onGetUsersCallback(users) {
+			if(!users.length) {
+				return;
+			}
+			renderList(users);
+		};
+
+		function renderList(users) {
+			const fragment = users.reduce(
+				(acc, user) => acc + userListItemTemplate(user), ''
+			);
+			usersListElement.insertAdjacentHTML('beforeend', fragment)
+		};
+
+		function renderUserInfo(user) {
+			userInfoElement.innerHTML = '';
+			const template = userInfoTemplate(user);
+			userInfoElement.insertAdjacentHTML('afterbegin', template);
+		};
+
+		function userListItemTemplate(user) {
+			return `
+			<a href="#" class="collection-item" data-user-id="${user.id}">
+				${user.name}
+			</a>
+			`
+		};
+
+		function userInfoTemplate(user) {
+			return `
+			<div class="card blue-grey darken-1">
+        <div class="card-content white-text">
+          <span class="card-title"><b>${user.name}</b></span>
+					<span style="margin-bottom: 20px"; class="card-title"><b>${user.email}</b></span>
+          <p style="margin-bottom: 10px;"><b>Nickname:</b> ${user.name}</p>
+					<p style="margin-bottom: 10px;"><b>Website:</b> ${user.website}</p>
+					<p style="margin-bottom: 10px;"><b>Company:</b> ${user.company.name}</p>
+					<p style="margin-bottom: 10px;"><b>City:</b> ${user.address.city}</p>
+					<p style="margin-bottom: 10px;"><b>Phone:</b> ${user.phone}</p>
+        </div>
+      </div>
+			`;
+		};
+
+		getUsersHttp(onGetUsersCallback);
+  </script>
+</html>
